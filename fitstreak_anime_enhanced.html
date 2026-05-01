@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FITSTREAK ANIME LEGENDS - Ultimate Fitness RPG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Archivo+Black&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --theme-primary: #FF006E;
+            --theme-secondary: #00D9FF;
+            --theme-accent: #FFBE0B;
+            --dark-bg: #0A0E27;
+            --card-bg: #1A1F3A;
+        }
+
+        @keyframes fireFlame {
+            0% {
+                clip-path: polygon(30% 100%, 0% 0%, 100% 0%, 70% 100%);
+                opacity: 0.8;
+            }
+            25% {
+                clip-path: polygon(20% 100%, 5% 10%, 95% 15%, 80% 100%);
+                opacity: 0.9;
+            }
+            50% {
+                clip-path: polygon(25% 100%, 0% 20%, 100% 25%, 75% 100%);
+                opacity: 0.7;
+            }
+            75% {
+                clip-path: polygon(35% 100%, 10% 5%, 90% 8%, 65% 100%);
+                opacity: 0.85;
+            }
+            100% {
+                clip-path: polygon(30% 100%, 0% 0%, 100% 0%, 70% 100%);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+            }
+            50% {
+                box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+            }
+        }
+
+        @keyframes floatPulse {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                transform: translateY(-8px) scale(1.05);
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Anime Theme Colors */
+        :root.theme-onepiece {
+            --theme-primary: #FF6B00;
+            --theme-secondary: #FFD700;
+            --theme-accent: #FF3333;
+        }
+
+        :root.theme-naruto {
+            --theme-primary: #FF9500;
+            --theme-secondary: #000000;
+            --theme-accent: #FFFF00;
+        }
+
+        :root.theme-dragonball {
+            --theme-primary: #FF6B00;
+            --theme-secondary: #1E90FF;
+            --theme-accent: #FFD700;
+        }
+
+        :root.theme-hunterxhunter {
+            --theme-primary: #8B0000;
+            --theme-secondary: #FFD700;
+            --theme-accent: #00FF00;
+        }
+
+        :root.theme-aot {
+            --theme-primary: #8B4513;
+            --theme-secondary: #DC143C;
+            --theme-accent: #FFD700;
+        }
+
+        :root.theme-mha {
+            --theme-primary: #FF6B6B;
+            --theme-secondary: #4ECDC4;
+            --theme-accent: #FFE66D;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a0f2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 107, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(10, 14, 39, 0.98) 0%, rgba(10, 14, 39, 0.99) 100%);
+            border-top: 3px solid var(--theme-primary);
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -4px 30px rgba(255, 107, 0, 0.3);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0;
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.65em;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-item.active {
+            color: var(--theme-primary);
+            text-shadow: 0 0 15px var(--theme-primary);
+        }
+
+        .nav-item:hover {
+            color: var(--theme-secondary);
+        }
+
+        .nav-item-icon {
+            font-size: 1.6em;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Theme Selector */
+        .theme-selector {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 999;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 200px;
+        }
+
+        .theme-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .theme-btn img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.25);
+        }
+
+        .theme-btn.active {
+            border-color: white;
+            box-shadow: 0 0 15px white, 0 0 25px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Anime Banner */
+        .anime-banner {
+            position: relative;
+            height: 100px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .anime-banner::before {
+            content: attr(data-logo);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--theme-accent);
+        }
+
+        .anime-banner-text {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 2;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 50%, #FF006E 100%);
+            color: white;
+            padding: 35px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 4px solid var(--theme-accent);
+            box-shadow: 0 10px 40px rgba(255, 107, 0, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.08) 2px,
+                rgba(255, 255, 255, 0.08) 4px
+            );
+            pointer-events: none;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            opacity: 0.95;
+            font-size: 0.95em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Home Screen */
+        .home-content {
+            padding: 20px;
+        }
+
+        .character-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 107, 0, 0.1) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 3px solid var(--theme-primary);
+            box-shadow: 0 10px 40px rgba(255, 107, 0, 0.25), inset 0 0 20px rgba(255, 107, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 107, 0, 0.15) 0%, transparent 60%);
+            animation: glow 3s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        .character-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 1px,
+                rgba(255, 107, 0, 0.02) 1px,
+                rgba(255, 107, 0, 0.02) 2px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .character-avatar {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            border: 4px solid var(--theme-accent);
+            box-shadow: 0 0 30px var(--theme-primary), inset 0 0 30px rgba(0, 217, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            animation: floatPulse 3s ease-in-out infinite, glow 2s ease-in-out infinite;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent);
+            overflow: hidden;
+        }
+
+        .character-avatar::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -10px;
+            width: 120%;
+            height: 120%;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, transparent 50%);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: fireFlame 2s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .character-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 110%;
+            height: 110%;
+            background: linear-gradient(45deg, #FF6B00, var(--theme-primary), transparent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: fireFlame 2.5s ease-in-out infinite reverse;
+            z-index: -1;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.4) 0%, transparent 70%);
+            animation: glow 2s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        .avatar-flames {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .flame {
+            position: absolute;
+            background: linear-gradient(180deg, #FF6B00 0%, #FFBE0B 50%, transparent 100%);
+            border-radius: 50% 50% 50% 0;
+        }
+
+        .flame-1 {
+            width: 30px;
+            height: 50px;
+            left: 20%;
+            bottom: 0;
+            animation: fireFlame 1.5s ease-in-out infinite;
+        }
+
+        .flame-2 {
+            width: 25px;
+            height: 45px;
+            right: 25%;
+            bottom: 5px;
+            animation: fireFlame 2s ease-in-out infinite;
+        }
+
+        .flame-3 {
+            width: 28px;
+            height: 48px;
+            right: 15%;
+            bottom: 0;
+            animation: fireFlame 1.8s ease-in-out infinite;
+        }
+
+        .character-name {
+            font-size: 1.8em;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--theme-accent);
+            position: relative;
+            z-index: 2;
+            font-family: 'Archivo Black', sans-serif;
+            text-shadow: 0 2px 10px rgba(255, 107, 0, 0.6);
+        }
+
+        .character-title {
+            font-size: 1em;
+            color: var(--theme-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+            font-weight: 700;
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--theme-primary), #FF006E);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 900;
+            font-size: 1em;
+            margin-bottom: 25px;
+            border: 3px solid var(--theme-accent);
+            position: relative;
+            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(0, 217, 255, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid var(--theme-secondary);
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 0% 0%, rgba(255, 107, 0, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.4), inset 0 0 20px rgba(0, 217, 255, 0.1);
+            border-color: var(--theme-accent);
+        }
+
+        .stat-box:hover::before {
+            opacity: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: var(--theme-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .stat-value {
+            font-size: 2.6em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--theme-accent) 0%, var(--theme-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .quick-action-btn {
+            width: 100%;
+            padding: 22px;
+            background: linear-gradient(135deg, var(--theme-primary) 0%, #FF006E 100%);
+            border: 4px solid var(--theme-accent);
+            color: white;
+            border-radius: 18px;
+            font-size: 1.25em;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+            font-family: 'Archivo Black', sans-serif;
+            overflow: hidden;
+        }
+
+        .quick-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 107, 0, 0.6), inset 0 0 30px rgba(255, 255, 255, 0.15);
+            letter-spacing: 3px;
+        }
+
+        .quick-action-btn:hover::before {
+            left: 100%;
+        }
+
+        .quick-action-btn:active {
+            transform: translateY(-2px);
+        }
+
+        /* Workouts Screen */
+        .workouts-content {
+            padding: 20px;
+        }
+
+        .category-header {
+            font-size: 1.3em;
+            font-weight: 900;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--theme-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding-left: 15px;
+            border-left: 5px solid var(--theme-accent);
+            font-family: 'Archivo Black', sans-serif;
+        }
+
+        .routine-card {
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 107, 0, 0.08) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid var(--theme-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.2);
+        }
+
+        .routine-card:hover {
+            transform: translateX(8px);
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.4);
+            border-color: var(--theme-accent);
+        }
+
+        .routine-name {
+            font-size: 1.15em;
+            font-weight: 800;
+            color: var(--theme-accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .routine-exercises {
+            font-size: 0.85em;
+            color: var(--theme-secondary);
+            margin-bottom: 10px;
+        }
+
+        .routine-difficulty {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .difficulty-easy {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00FF41;
+            border: 1px solid #00FF41;
+        }
+
+        .difficulty-medium {
+            background: rgba(255, 190, 11, 0.2);
+            color: #FFBE0B;
+            border: 1px solid #FFBE0B;
+        }
+
+        .difficulty-hard {
+            background: rgba(255, 107, 0, 0.2);
+            color: #FF6B00;
+            border: 1px solid #FF6B00;
+        }
+
+        /* Workout Session */
+        .session-container {
+            padding: 20px;
+        }
+
+        .exercise-item {
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 107, 0, 0.08) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #444;
+            transition: all 0.3s;
+        }
+
+        .exercise-item.current {
+            border: 3px solid var(--theme-primary);
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 107, 0, 0.08));
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+        }
+
+        .exercise-item.completed {
+            opacity: 0.6;
+            border-color: #00FF41;
+        }
+
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .exercise-name {
+            font-size: 1.15em;
+            font-weight: 800;
+            color: var(--theme-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .exercise-status {
+            font-size: 1.8em;
+            color: var(--theme-secondary);
+        }
+
+        .exercise-target {
+            color: var(--theme-secondary);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .rep-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 107, 0, 0.15);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--theme-secondary);
+        }
+
+        .rep-display {
+            font-size: 2em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--theme-secondary), var(--theme-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .rep-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rep-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid var(--theme-primary);
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(255, 107, 0, 0.1));
+            color: var(--theme-primary);
+            border-radius: 8px;
+            font-size: 1.3em;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .rep-btn:hover {
+            background: linear-gradient(135deg, var(--theme-primary), #FF006E);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .camera-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--theme-secondary), #00A8D8);
+            border: 2px solid var(--theme-accent);
+            color: var(--dark-bg);
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.95em;
+        }
+
+        .camera-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .complete-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #00FF41, #00DD38);
+            border: 2px solid #00FF41;
+            color: #000;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .complete-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 65, 0.4);
+        }
+
+        .complete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skip-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid #666;
+            color: #888;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .skip-btn:hover {
+            border-color: var(--theme-accent);
+            color: var(--theme-accent);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 39, 0.98);
+            z-index: 2000;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--card-bg), rgba(255, 107, 0, 0.1));
+            border-radius: 20px;
+            border: 3px solid var(--theme-primary);
+            padding: 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 60px rgba(255, 107, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 3px solid var(--theme-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), transparent);
+        }
+
+        .modal-header h2 {
+            font-size: 1.4em;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--theme-accent);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: var(--theme-primary);
+            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--theme-accent);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            margin: 15px;
+        }
+
+        #cameraFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        #poseCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #exerciseGuide {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95), rgba(255, 107, 0, 0.1));
+            color: var(--theme-secondary);
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 200px;
+            font-size: 0.9em;
+            z-index: 10;
+            border: 2px solid var(--theme-secondary);
+        }
+
+        #guideName {
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--theme-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #repOverlay {
+            position: absolute;
+            bottom: 80px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--theme-primary), #FF006E);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 10;
+            min-width: 85px;
+            border: 2px solid var(--theme-accent);
+            box-shadow: 0 0 25px rgba(255, 107, 0, 0.6);
+        }
+
+        #formFeedback {
+            position: absolute;
+            bottom: 80px;
+            left: 15px;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95), rgba(255, 107, 0, 0.1));
+            color: var(--theme-accent);
+            padding: 12px 15px;
+            border-radius: 12px;
+            z-index: 10;
+            font-weight: 800;
+            min-width: 150px;
+            text-align: center;
+            border: 2px solid var(--theme-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .camera-controls {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 3px solid var(--theme-primary);
+            background: linear-gradient(135deg, transparent, rgba(255, 107, 0, 0.1));
+        }
+
+        .camera-btn {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        .camera-btn-record {
+            background: linear-gradient(135deg, var(--theme-primary), #FF006E);
+            color: white;
+            border-color: var(--theme-accent);
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+        }
+
+        .camera-btn-record:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.5);
+        }
+
+        .camera-btn-close {
+            background: transparent;
+            color: var(--theme-secondary);
+            border-color: var(--theme-secondary);
+        }
+
+        .camera-btn-close:hover {
+            background: rgba(255, 107, 0, 0.1);
+            color: var(--theme-accent);
+        }
+
+        /* Stats Screen */
+        .stats-content {
+            padding: 20px;
+        }
+
+        .chart-container {
+            background: linear-gradient(135deg, var(--card-bg), rgba(255, 107, 0, 0.08));
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid var(--theme-secondary);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 900;
+            color: var(--theme-accent);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Archivo Black', sans-serif;
+        }
+
+        .workout-history {
+            background: linear-gradient(135deg, var(--card-bg), rgba(255, 107, 0, 0.08));
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid var(--theme-primary);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.2);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 107, 0, 0.08);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--theme-secondary);
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 107, 0, 0.15);
+            transform: translateX(5px);
+        }
+
+        .history-name {
+            font-weight: 800;
+            color: var(--theme-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-date {
+            font-size: 0.85em;
+            color: var(--theme-secondary);
+            margin-top: 4px;
+        }
+
+        .history-duration {
+            font-weight: 800;
+            color: #00FF41;
+            font-size: 1.15em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .character-name {
+                font-size: 1.3em;
+            }
+
+            .theme-selector {
+                max-width: 100%;
+                top: 80px;
+                right: 0;
+                left: 0;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-btn theme-onepiece active" title="One Piece" onclick="setTheme('onepiece')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF6B00%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFDBAC%22/%3E%3Crect x=%2280%22 y=%2275%22 width=%2220%22 height=%225%22 fill=%22%23000%22/%3E%3Crect x=%22100%22 y=%2275%22 width=%2220%22 height=%225%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 95 Q 85 105 100 110 Q 115 105 100 95%22 fill=%22%23FF6B00%22/%3E%3C/svg%3E" alt="Luffy">
+        </button>
+        <button class="theme-btn theme-naruto" title="Naruto" onclick="setTheme('naruto')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF9500%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFE4B5%22/%3E%3Ccircle cx=%2290%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22110%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 80 100 Q 100 110 120 100%22 stroke=%22%23FF6B00%22 stroke-width=%222%22 fill=%22none%22/%3E%3C/svg%3E" alt="Naruto">
+        </button>
+        <button class="theme-btn theme-dragonball" title="Dragon Ball" onclick="setTheme('dragonball')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%221E90FF%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFCC99%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 105 L 95 115 L 105 115 Z%22 fill=%22%23FF6B00%22/%3E%3C/svg%3E" alt="Goku">
+        </button>
+        <button class="theme-btn theme-hunterxhunter" title="Hunter x Hunter" onclick="setTheme('hunterxhunter')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FFD700%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23F5DEB3%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%227%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%227%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 100 Q 90 115 110 115 Q 100 120 90 115%22 fill=%22%238B0000%22/%3E%3C/svg%3E" alt="Gon">
+        </button>
+        <button class="theme-btn theme-aot" title="Attack on Titan" onclick="setTheme('aot')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%23DC143C width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23D2B48C%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 95 100 L 105 100 L 100 110 Z%22 fill=%22%238B4513%22/%3E%3C/svg%3E" alt="Eren">
+        </button>
+        <button class="theme-btn theme-mha" title="My Hero Academia" onclick="setTheme('mha')">
+            <img src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%224ECDC4%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23F5DEB3%22/%3E%3Ccircle cx=%2290%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22110%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 95 Q 85 110 100 115 Q 115 110 100 95%22 fill=%22%23FF6B6B%22/%3E%3C/svg%3E" alt="Deku">
+        </button>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="header">
+            <h1>⚡ FITSTREAK</h1>
+            <p>🔥 Anime Legends Fitness RPG 🔥</p>
+        </div>
+        <div class="home-content content">
+            <div class="anime-banner" id="themeBanner" data-logo=""></div>
+            
+            <div class="character-card">
+                <div class="character-avatar" id="characterAvatar">💪</div>
+                <div class="character-name" id="characterNameDisplay">Fitness Champion</div>
+                <div class="character-title">Lv. <span id="characterLevel">1</span> • Power Unleashed</div>
+                <div class="level-badge">POWER LEVEL: <span id="powerLevel">100</span></div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Current Streak</div>
+                        <div class="stat-value" id="homeStreakNumber">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total Workouts</div>
+                        <div class="stat-value" id="homeWorkoutCount">0</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Total Reps</div>
+                        <div class="stat-value" id="homeTotalReps">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Max Combo</div>
+                        <div class="stat-value" id="maxCombo">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="quick-action-btn" onclick="showScreen('workoutsScreen')">
+                ▶ START TRAINING
+            </button>
+        </div>
+    </div>
+
+    <!-- Workouts Screen -->
+    <div id="workoutsScreen" class="screen">
+        <div class="header">
+            <h1>⚔ TRAINING DOJO</h1>
+            <p>Select Your Anime Legend Routine</p>
+        </div>
+        <div class="workouts-content content" id="workoutsContent"></div>
+    </div>
+
+    <!-- Stats Screen -->
+    <div id="statsScreen" class="screen">
+        <div class="header">
+            <h1>📊 BATTLE STATS</h1>
+            <p>Your Progress</p>
+        </div>
+        <div class="stats-content content">
+            <div class="chart-container">
+                <div class="chart-title">WEEKLY STATS</div>
+                <div id="weeklyStats" style="text-align: center; color: var(--theme-secondary);">
+                    No workouts yet. Start one to see stats!
+                </div>
+            </div>
+            <div class="workout-history">
+                <div class="chart-title">BATTLE LOG</div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout Session Screen -->
+    <div id="sessionScreen" class="screen">
+        <div class="header">
+            <h1 id="sessionTitle">TRAINING SESSION</h1>
+            <p id="sessionProgress">0/0</p>
+        </div>
+        <div class="session-container content">
+            <div id="exercisesContainer"></div>
+            <button class="quick-action-btn" onclick="finishWorkout()">✓ COMPLETE TRAINING</button>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚡ AI FORM ANALYSIS</h2>
+                <button class="modal-close" onclick="closeCamera()">✕</button>
+            </div>
+            <div class="modal-body">
+                <video id="cameraFeed" playsinline autoplay></video>
+                <canvas id="poseCanvas"></canvas>
+                
+                <div id="exerciseGuide">
+                    <div id="guideName">Loading...</div>
+                    <div id="guideSteps"></div>
+                </div>
+
+                <div id="repOverlay">
+                    <div style="font-size: 0.9em; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Reps</div>
+                    <div style="font-size: 2.5em; font-weight: bold;" id="repCount">0</div>
+                </div>
+
+                <div id="formFeedback">
+                    <div id="feedbackText">Initializing...</div>
+                </div>
+            </div>
+            <div class="camera-controls">
+                <button class="camera-btn camera-btn-record" id="recordBtn" onclick="togglePoseDetection()">
+                    ▶ START DETECTION
+                </button>
+                <button class="camera-btn camera-btn-close" onclick="closeCamera()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button class="nav-item active" onclick="switchScreen('homeScreen')">
+            <div class="nav-item-icon">⚡</div>
+            <div>HOME</div>
+        </button>
+        <button class="nav-item" onclick="switchScreen('workoutsScreen')">
+            <div class="nav-item-icon">⚔</div>
+            <div>DOJO</div>
+        </button>
+        <button class="nav-item" onclick="switchScreen('statsScreen')">
+            <div class="nav-item-icon">📊</div>
+            <div>STATS</div>
+        </button>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'fitstreak_anime_legends_data';
+        
+        const THEME_DATA = {
+            onepiece: {
+                name: 'Luffy',
+                emoji: '☠️',
+                banner: 'ONE PIECE',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF6B00%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFDBAC%22/%3E%3Crect x=%2280%22 y=%2275%22 width=%2220%22 height=%225%22 fill=%22%23000%22/%3E%3Crect x=%22100%22 y=%2275%22 width=%2220%22 height=%225%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 95 Q 85 105 100 110 Q 115 105 100 95%22 fill=%22%23FF6B00%22/%3E%3Ctext x=%22100%22 y=%22160%22 font-size=%2240%22 text-anchor=%22middle%22%3E☠️%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#FF6B00', secondary: '#FFD700', accent: '#FF3333' },
+                description: 'Pirate Adventure',
+                power: 'Rubber Power'
+            },
+            naruto: {
+                name: 'Naruto',
+                emoji: '🌪️',
+                banner: 'NARUTO',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FF9500%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFE4B5%22/%3E%3Ccircle cx=%2290%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22110%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 80 100 Q 100 110 120 100%22 stroke=%22%23FF6B00%22 stroke-width=%222%22 fill=%22none%22/%3E%3Ctext x=%22100%22 y=%22155%22 font-size=%2240%22 text-anchor=%22middle%22%3E🌪️%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#FF9500', secondary: '#000000', accent: '#FFFF00' },
+                description: 'Ninja Legend',
+                power: 'Nine-Tailed Fox'
+            },
+            dragonball: {
+                name: 'Goku',
+                emoji: '⚪',
+                banner: 'DRAGON BALL',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%231E90FF%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23FFCC99%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 105 L 95 115 L 105 115 Z%22 fill=%22%23FF6B00%22/%3E%3Ctext x=%22100%22 y=%22155%22 font-size=%2240%22 text-anchor=%22middle%22%3E✊%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#FF6B00', secondary: '#1E90FF', accent: '#FFD700' },
+                description: 'Saiyan Warrior',
+                power: 'Super Saiyan'
+            },
+            hunterxhunter: {
+                name: 'Gon',
+                emoji: '🔥',
+                banner: 'HUNTER x HUNTER',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%22%23FFD700%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23F5DEB3%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%227%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%227%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 100 Q 90 115 110 115 Q 100 120 90 115%22 fill=%22%238B0000%22/%3E%3Ctext x=%22100%22 y=%22155%22 font-size=%2240%22 text-anchor=%22middle%22%3E🔥%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#8B0000', secondary: '#FFD700', accent: '#00FF00' },
+                description: 'Nen Hunter',
+                power: 'Nen Master'
+            },
+            aot: {
+                name: 'Eren',
+                emoji: '🧱',
+                banner: 'ATTACK ON TITAN',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%23DC143C width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23D2B48C%22/%3E%3Ccircle cx=%2285%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22115%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 95 100 L 105 100 L 100 110 Z%22 fill=%22%238B4513%22/%3E%3Ctext x=%22100%22 y=%22155%22 font-size=%2240%22 text-anchor=%22middle%22%3E💪%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#8B4513', secondary: '#DC143C', accent: '#FFD700' },
+                description: 'Titan Shifter',
+                power: 'Titan Form'
+            },
+            mha: {
+                name: 'Deku',
+                emoji: '✊',
+                banner: 'MY HERO ACADEMIA',
+                image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Crect fill=%224ECDC4%22 width=%22200%22 height=%22200%22/%3E%3Ccircle cx=%22100%22 cy=%2280%22 r=%2240%22 fill=%22%23F5DEB3%22/%3E%3Ccircle cx=%2290%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Ccircle cx=%22110%22 cy=%2270%22 r=%228%22 fill=%22%23000%22/%3E%3Cpath d=%22M 100 95 Q 85 110 100 115 Q 115 110 100 95%22 fill=%22%23FF6B6B%22/%3E%3Ctext x=%22100%22 y=%22155%22 font-size=%2240%22 text-anchor=%22middle%22%3E✊%3C/text%3E%3C/svg%3E',
+                colors: { primary: '#FF6B6B', secondary: '#4ECDC4', accent: '#FFE66D' },
+                description: 'Hero in Training',
+                power: 'One For All'
+            }
+        };
+
+        const EXERCISES = {
+            pushups: { name: 'Push-ups', defaultReps: 10, icon: '💪' },
+            situps: { name: 'Sit-ups', defaultReps: 15, icon: '⬆️' },
+            squats: { name: 'Squats', defaultReps: 15, icon: '🦵' },
+            planks: { name: 'Plank Hold', defaultReps: 30, icon: '📏', duration: true },
+            burpees: { name: 'Burpees', defaultReps: 8, icon: '🤸' },
+            lunges: { name: 'Lunges', defaultReps: 12, icon: '🚶' },
+            mountainClimbers: { name: 'Mountain Climbers', defaultReps: 20, icon: '⛰️' },
+            jumpingJacks: { name: 'Jumping Jacks', defaultReps: 20, icon: '🎪' },
+        };
+
+        const ROUTINES = [
+            {
+                name: '🗺️ Beginner Full Body',
+                difficulty: 'easy',
+                category: '⭐ BEGINNER PATH',
+                exercises: [
+                    { id: 'pushups', reps: 8 },
+                    { id: 'situps', reps: 10 },
+                    { id: 'squats', reps: 10 },
+                    { id: 'planks', reps: 20, duration: true }
+                ]
+            },
+            {
+                name: '🔥 Upper Body Blast',
+                difficulty: 'medium',
+                category: '⚔️ ELITE TRAINING',
+                exercises: [
+                    { id: 'pushups', reps: 15 },
+                    { id: 'burpees', reps: 8 },
+                    { id: 'mountainClimbers', reps: 15 },
+                    { id: 'planks', reps: 30, duration: true }
+                ]
+            },
+            {
+                name: '💥 Lower Body Power',
+                difficulty: 'medium',
+                category: '⚔️ ELITE TRAINING',
+                exercises: [
+                    { id: 'squats', reps: 20 },
+                    { id: 'lunges', reps: 15 },
+                    { id: 'jumpingJacks', reps: 25 },
+                    { id: 'situps', reps: 20 }
+                ]
+            },
+            {
+                name: '⚡ Core Crusher',
+                difficulty: 'medium',
+                category: '⚔️ ELITE TRAINING',
+                exercises: [
+                    { id: 'situps', reps: 25 },
+                    { id: 'planks', reps: 45, duration: true },
+                    { id: 'mountainClimbers', reps: 20 },
+                    { id: 'burpees', reps: 10 }
+                ]
+            },
+            {
+                name: '🌟 HIIT Hardcore',
+                difficulty: 'hard',
+                category: '🏆 LEGENDARY MODE',
+                exercises: [
+                    { id: 'burpees', reps: 15 },
+                    { id: 'mountainClimbers', reps: 40 },
+                    { id: 'jumpingJacks', reps: 40 },
+                    { id: 'planks', reps: 60, duration: true }
+                ]
+            },
+            {
+                name: '☠️ Pirate Luffy Training',
+                difficulty: 'hard',
+                category: '🎬 ANIME LEGENDS',
+                exercises: [
+                    { id: 'pushups', reps: 100 },
+                    { id: 'situps', reps: 100 },
+                    { id: 'squats', reps: 100 },
+                    { id: 'jumpingJacks', reps: 50 }
+                ]
+            },
+            {
+                name: '🌪️ Naruto Shadow Clone Training',
+                difficulty: 'hard',
+                category: '🎬 ANIME LEGENDS',
+                exercises: [
+                    { id: 'pushups', reps: 30 },
+                    { id: 'burpees', reps: 20 },
+                    { id: 'mountainClimbers', reps: 40 },
+                    { id: 'situps', reps: 30 }
+                ]
+            },
+            {
+                name: '⚪ Dragon Ball Weighted',
+                difficulty: 'hard',
+                category: '🎬 ANIME LEGENDS',
+                exercises: [
+                    { id: 'squats', reps: 50 },
+                    { id: 'pushups', reps: 40 },
+                    { id: 'lunges', reps: 30 },
+                    { id: 'planks', reps: 90, duration: true }
+                ]
+            },
+            {
+                name: '🔥 Gon Power Transformation',
+                difficulty: 'hard',
+                category: '🎬 ANIME LEGENDS',
+                exercises: [
+                    { id: 'burpees', reps: 25 },
+                    { id: 'squats', reps: 45 },
+                    { id: 'situps', reps: 35 },
+                    { id: 'jumpingJacks', reps: 50 }
+                ]
+            },
+            {
+                name: '✊ Ultra Instinct Goku',
+                difficulty: 'hard',
+                category: '🎬 ANIME LEGENDS',
+                exercises: [
+                    { id: 'pushups', reps: 50 },
+                    { id: 'mountainClimbers', reps: 50 },
+                    { id: 'planks', reps: 120, duration: true },
+                    { id: 'burpees', reps: 20 }
+                ]
+            }
+        ];
+
+        let appData = {
+            currentStreak: 0,
+            longestStreak: 0,
+            totalWorkouts: 0,
+            totalReps: 0,
+            lastWorkoutDate: null,
+            workoutHistory: [],
+            currentWorkout: null,
+            currentExerciseIndex: 0,
+            currentTheme: 'onepiece'
+        };
+
+        function setTheme(theme) {
+            appData.currentTheme = theme;
+            document.documentElement.className = 'theme-' + theme;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('button[onclick="setTheme(\'' + theme + '\')"]').classList.add('active');
+            
+            const themeInfo = THEME_DATA[theme];
+            document.getElementById('themeBanner').textContent = themeInfo.banner;
+            document.getElementById('characterNameDisplay').textContent = themeInfo.name;
+            
+            // Update avatar with character image
+            const avatarDiv = document.getElementById('characterAvatar');
+            avatarDiv.innerHTML = `
+                <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden;">
+                    <img src="${themeInfo.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="${themeInfo.name}">
+                    <div class="avatar-flames">
+                        <div class="flame flame-1"></div>
+                        <div class="flame flame-2"></div>
+                        <div class="flame flame-3"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Add character power description
+            const powerSpan = document.querySelector('.character-title');
+            powerSpan.innerHTML = `Lv. <span id="characterLevel">1</span> • ${themeInfo.power}`;
+            
+            saveData();
+        }
+
+        function init() {
+            loadData();
+            setTheme(appData.currentTheme);
+            renderWorkouts();
+            updateUI();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                appData = JSON.parse(stored);
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            if (screenId === 'statsScreen') updateStats();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function renderWorkouts() {
+            const container = document.getElementById('workoutsContent');
+            container.innerHTML = '';
+            const categories = {};
+            ROUTINES.forEach(routine => {
+                const cat = routine.category || 'Other';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(routine);
+            });
+            Object.entries(categories).forEach(([category, routines]) => {
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header';
+                categoryHeader.textContent = category;
+                container.appendChild(categoryHeader);
+                routines.forEach((routine, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'routine-card';
+                    card.innerHTML = `
+                        <div class="routine-name">${routine.name}</div>
+                        <div class="routine-exercises">${routine.exercises.length} exercises</div>
+                        <span class="routine-difficulty difficulty-${routine.difficulty}">${routine.difficulty}</span>
+                    `;
+                    card.onclick = () => startWorkout(ROUTINES.indexOf(routine));
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        function startWorkout(routineIndex) {
+            appData.currentWorkout = {
+                routine: ROUTINES[routineIndex],
+                startTime: Date.now(),
+                exercises: ROUTINES[routineIndex].exercises.map(e => ({
+                    ...e,
+                    completed: false,
+                    actualReps: 0
+                }))
+            };
+            appData.currentExerciseIndex = 0;
+            renderWorkoutSession();
+            showScreen('sessionScreen');
+        }
+
+        function renderWorkoutSession() {
+            const routine = appData.currentWorkout.routine;
+            document.getElementById('sessionTitle').textContent = routine.name.toUpperCase();
+            document.getElementById('sessionProgress').textContent = `${appData.currentExerciseIndex + 1}/${appData.currentWorkout.exercises.length}`;
+            const container = document.getElementById('exercisesContainer');
+            container.innerHTML = '';
+            appData.currentWorkout.exercises.forEach((exercise, index) => {
+                const exerciseInfo = EXERCISES[exercise.id];
+                const item = document.createElement('div');
+                item.className = `exercise-item ${index === appData.currentExerciseIndex ? 'current' : ''} ${exercise.completed ? 'completed' : ''}`;
+                const status = exercise.completed ? '✓' : (index === appData.currentExerciseIndex ? '▶' : '');
+                const repsDisplay = exercise.duration ? `${exercise.actualReps}s / ${exercise.reps}s` : `${exercise.actualReps} / ${exercise.reps}`;
+                item.innerHTML = `
+                    <div class="exercise-header">
+                        <div class="exercise-name">${exerciseInfo.icon} ${exerciseInfo.name}</div>
+                        <div class="exercise-status">${status}</div>
+                    </div>
+                    ${index === appData.currentExerciseIndex ? `
+                        <div class="exercise-target">TARGET: ${exercise.reps}${exercise.duration ? 's' : ' REPS'}</div>
+                        <div class="rep-counter">
+                            <div class="rep-display" id="repDisplay${index}">${repsDisplay}</div>
+                            <div class="rep-buttons">
+                                <button class="rep-btn" onclick="decrementReps(${index})">−</button>
+                                <button class="rep-btn" onclick="incrementReps(${index})">+</button>
+                            </div>
+                        </div>
+                        <button class="camera-button" onclick="openCamera()">📷 AI FORM CHECK</button>
+                        <div class="exercise-actions" style="display: flex; gap: 10px;">
+                            <button class="complete-btn" onclick="completeExercise(${index})" ${exercise.actualReps === 0 ? 'disabled' : ''}>COMPLETE</button>
+                            <button class="skip-btn" onclick="skipExercise(${index})">SKIP</button>
+                        </div>
+                    ` : `
+                        <div class="exercise-target">${repsDisplay}</div>
+                    `}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function incrementReps(index) {
+            appData.currentWorkout.exercises[index].actualReps++;
+            renderWorkoutSession();
+        }
+
+        function decrementReps(index) {
+            if (appData.currentWorkout.exercises[index].actualReps > 0) {
+                appData.currentWorkout.exercises[index].actualReps--;
+                renderWorkoutSession();
+            }
+        }
+
+        function completeExercise(index) {
+            appData.currentWorkout.exercises[index].completed = true;
+            appData.currentExerciseIndex++;
+            renderWorkoutSession();
+        }
+
+        function skipExercise(index) {
+            appData.currentWorkout.exercises[index].completed = true;
+            appData.currentExerciseIndex++;
+            renderWorkoutSession();
+        }
+
+        function finishWorkout() {
+            const workout = appData.currentWorkout;
+            const duration = Math.round((Date.now() - workout.startTime) / 1000 / 60);
+            const totalReps = workout.exercises.reduce((sum, e) => sum + e.actualReps, 0);
+            const workoutRecord = {
+                date: new Date().toISOString().split('T')[0],
+                routine: workout.routine.name,
+                duration: duration,
+                reps: totalReps,
+                timestamp: new Date().toLocaleString()
+            };
+            appData.workoutHistory.unshift(workoutRecord);
+            appData.totalWorkouts++;
+            appData.totalReps += totalReps;
+            const today = new Date().toISOString().split('T')[0];
+            if (appData.lastWorkoutDate !== today) {
+                appData.lastWorkoutDate = today;
+                appData.currentStreak++;
+                if (appData.currentStreak > appData.longestStreak) {
+                    appData.longestStreak = appData.currentStreak;
+                }
+            }
+            saveData();
+            updateUI();
+            showScreen('homeScreen');
+            const themeInfo = THEME_DATA[appData.currentTheme];
+            const powerLevel = Math.floor(appData.totalReps / 10) + 100;
+            alert(`
+✨══════════════════════════════════════✨
+⚡ ${themeInfo.name.toUpperCase()} TRAINING COMPLETE! 🔥
+
+💪 REPS: ${totalReps}
+⏱️ DURATION: ${duration}m
+🔥 CURRENT STREAK: ${appData.currentStreak}
+✨ POWER LEVEL: ${powerLevel}
+🏆 TOTAL WORKOUTS: ${appData.totalWorkouts}
+
+${themeInfo.description.toUpperCase()} POWER ACTIVATED!
+✨══════════════════════════════════════✨
+            `);
+        }
+
+        function updateUI() {
+            document.getElementById('homeStreakNumber').textContent = appData.currentStreak;
+            document.getElementById('homeWorkoutCount').textContent = appData.totalWorkouts;
+            document.getElementById('homeTotalReps').textContent = appData.totalReps;
+            document.getElementById('characterLevel').textContent = Math.floor(appData.totalReps / 100) + 1;
+            document.getElementById('powerLevel').textContent = Math.floor(appData.totalReps / 10) + 100;
+            document.getElementById('maxCombo').textContent = appData.longestStreak;
+            
+            // Ensure character avatar has image when UI updates
+            const themeInfo = THEME_DATA[appData.currentTheme];
+            const avatarDiv = document.getElementById('characterAvatar');
+            if (avatarDiv && !avatarDiv.innerHTML.includes('img')) {
+                avatarDiv.innerHTML = `
+                    <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden;">
+                        <img src="${themeInfo.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="${themeInfo.name}">
+                        <div class="avatar-flames">
+                            <div class="flame flame-1"></div>
+                            <div class="flame flame-2"></div>
+                            <div class="flame flame-3"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats() {
+            const today = new Date();
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const weekWorkouts = appData.workoutHistory.filter(w => new Date(w.date) >= weekAgo);
+            document.getElementById('weeklyStats').innerHTML = `
+                <div style="font-size: 1.8em; font-weight: bold; color: var(--theme-accent); margin-bottom: 15px;">
+                    ${weekWorkouts.length} BATTLES WON
+                </div>
+                <div style="color: var(--theme-secondary); font-size: 1.1em;">
+                    ${weekWorkouts.reduce((sum, w) => sum + w.reps, 0)} TOTAL REPS THIS WEEK
+                </div>
+            `;
+            const historyList = document.getElementById('historyList');
+            if (appData.workoutHistory.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">No battles recorded yet. Start training now!</div>';
+                return;
+            }
+            historyList.innerHTML = appData.workoutHistory.slice(0, 10).map(w => `
+                <div class="history-item">
+                    <div>
+                        <div class="history-name">${w.routine}</div>
+                        <div class="history-date">${w.date} • ${w.reps} reps</div>
+                    </div>
+                    <div class="history-duration">${w.duration}m</div>
+                </div>
+            `).join('');
+        }
+
+        function openCamera() {
+            document.getElementById('cameraModal').classList.add('active');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                .then(stream => {
+                    document.getElementById('cameraFeed').srcObject = stream;
+                    initPoseDetection();
+                })
+                .catch(err => alert('Camera access denied'));
+        }
+
+        function closeCamera() {
+            document.getElementById('cameraModal').classList.remove('active');
+            const video = document.getElementById('cameraFeed');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            if (pose) pose.close();
+            if (camera) camera.stop();
+            isPoseDetecting = false;
+            document.getElementById('recordBtn').textContent = '▶ START DETECTION';
+        }
+
+        // Pose Detection
+        let pose, camera, isPoseDetecting = false;
+        let poseState = {
+            repCount: 0,
+            isInStartPosition: false,
+            isInEndPosition: false,
+            lastRep: 0,
+            framesSinceLastRep: 0,
+            exerciseType: 'pushups',
+            confidence: 0,
+            formQuality: 'initializing',
+            lastPositions: []
+        };
+
+        const exerciseDetectors = {
+            pushups: {
+                guide: "Get in plank position. Keep your body straight, lower down, and push back up.",
+                steps: ["1. PLANK POSITION\n2. LOWER CHEST\n3. PUSH UP\n4. REPEAT"],
+                detect: function(landmarks) {
+                    const leftShoulder = landmarks[11];
+                    const rightShoulder = landmarks[12];
+                    const leftElbow = landmarks[13];
+                    const rightElbow = landmarks[14];
+                    const leftWrist = landmarks[15];
+                    const rightWrist = landmarks[16];
+                    const leftHip = landmarks[23];
+                    const rightHip = landmarks[24];
+                    const leftArmBend = getAngle(leftShoulder, leftElbow, leftWrist);
+                    const rightArmBend = getAngle(rightShoulder, rightElbow, rightWrist);
+                    const avgBend = (leftArmBend + rightArmBend) / 2;
+                    const shoulderHipDist = Math.hypot(leftShoulder.x - leftHip.x, leftShoulder.y - leftHip.y);
+                    const bodyAlignment = shoulderHipDist < 0.2 ? "good" : "adjust body";
+                    if (avgBend > 140) {
+                        poseState.isInStartPosition = true;
+                        poseState.isInEndPosition = false;
+                        poseState.formQuality = bodyAlignment;
+                    } else if (avgBend < 95 && poseState.isInStartPosition) {
+                        poseState.isInEndPosition = true;
+                        poseState.formQuality = bodyAlignment;
+                    }
+                    if (poseState.isInStartPosition && poseState.isInEndPosition && avgBend > 140) {
+                        if (poseState.framesSinceLastRep > 15) {
+                            poseState.repCount++;
+                            poseState.framesSinceLastRep = 0;
+                            poseState.isInEndPosition = false;
+                        }
+                    }
+                    poseState.framesSinceLastRep++;
+                    poseState.confidence = Math.min(leftShoulder.visibility, rightShoulder.visibility, leftElbow.visibility, rightElbow.visibility);
+                }
+            },
+            squats: {
+                guide: "Stand straight, lower your hips like sitting in a chair, then stand back up.",
+                steps: ["1. STAND STRAIGHT\n2. LOWER HIPS\n3. GO BACK UP\n4. REPEAT"],
+                detect: function(landmarks) {
+                    const leftHip = landmarks[23];
+                    const rightHip = landmarks[24];
+                    const leftKnee = landmarks[25];
+                    const rightKnee = landmarks[26];
+                    const leftAnkle = landmarks[27];
+                    const rightAnkle = landmarks[28];
+                    const leftKneeBend = getAngle(leftHip, leftKnee, leftAnkle);
+                    const rightKneeBend = getAngle(rightHip, rightKnee, rightAnkle);
+                    const avgKneeBend = (leftKneeBend + rightKneeBend) / 2;
+                    if (avgKneeBend > 140) {
+                        poseState.isInStartPosition = true;
+                        poseState.isInEndPosition = false;
+                        poseState.formQuality = "good";
+                    } else if (avgKneeBend < 95 && poseState.isInStartPosition) {
+                        poseState.isInEndPosition = true;
+                        poseState.formQuality = "good";
+                    }
+                    if (poseState.isInStartPosition && poseState.isInEndPosition && avgKneeBend > 140) {
+                        if (poseState.framesSinceLastRep > 15) {
+                            poseState.repCount++;
+                            poseState.framesSinceLastRep = 0;
+                            poseState.isInEndPosition = false;
+                        }
+                    }
+                    poseState.framesSinceLastRep++;
+                    poseState.confidence = Math.min(leftKnee.visibility, rightKnee.visibility, leftHip.visibility, rightHip.visibility);
+                }
+            },
+            situps: {
+                guide: "Lie on your back, curl up to sitting position, then lie back down.",
+                steps: ["1. LIE FLAT\n2. SIT UP\n3. LIE BACK\n4. REPEAT"],
+                detect: function(landmarks) {
+                    const nose = landmarks[0];
+                    const leftShoulder = landmarks[11];
+                    const rightShoulder = landmarks[12];
+                    const leftHip = landmarks[23];
+                    const rightHip = landmarks[24];
+                    const shoulderMid = {
+                        x: (leftShoulder.x + rightShoulder.x) / 2,
+                        y: (leftShoulder.y + rightShoulder.y) / 2
+                    };
+                    const hipMid = {
+                        x: (leftHip.x + rightHip.x) / 2,
+                        y: (leftHip.y + rightHip.y) / 2
+                    };
+                    const torsoAngle = Math.atan2(hipMid.y - shoulderMid.y, hipMid.x - shoulderMid.x) * 180 / Math.PI;
+                    const normalizedAngle = Math.abs(torsoAngle) < 45 ? 'up' : 'down';
+                    if (normalizedAngle === 'down') {
+                        poseState.isInStartPosition = true;
+                        poseState.isInEndPosition = false;
+                    } else if (normalizedAngle === 'up' && poseState.isInStartPosition) {
+                        poseState.isInEndPosition = true;
+                    }
+                    if (poseState.isInStartPosition && poseState.isInEndPosition && normalizedAngle === 'down') {
+                        if (poseState.framesSinceLastRep > 15) {
+                            poseState.repCount++;
+                            poseState.framesSinceLastRep = 0;
+                            poseState.isInEndPosition = false;
+                        }
+                    }
+                    poseState.framesSinceLastRep++;
+                    poseState.confidence = Math.min(leftShoulder.visibility, rightShoulder.visibility, leftHip.visibility, rightHip.visibility);
+                }
+            },
+            default: {
+                guide: "Position yourself clearly in frame for accurate detection.",
+                steps: ["1. FACE CAMERA\n2. GOOD LIGHTING\n3. FULL BODY VISIBLE\n4. START EXERCISE"],
+                detect: function(landmarks) { poseState.confidence = 0.5; }
+            }
+        };
+
+        function getAngle(a, b, c) {
+            const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+            let angle = Math.abs(radians * 180.0 / Math.PI);
+            if (angle > 180.0) angle = 360.0 - angle;
+            return angle;
+        }
+
+        function initPoseDetection() {
+            const video = document.getElementById('cameraFeed');
+            const canvas = document.getElementById('poseCanvas');
+            video.onloadedmetadata = function() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                startPoseDetection();
+            };
+        }
+
+        function startPoseDetection() {
+            pose = new Pose({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+            });
+            pose.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                enableSegmentation: false,
+                smoothSegmentation: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5,
+            });
+            pose.onResults(onPoseResults);
+            const video = document.getElementById('cameraFeed');
+            camera = new Camera(video, {
+                onFrame: async () => { await pose.send({image: video}); },
+                width: 480,
+                height: 640
+            });
+            camera.start();
+            updateExerciseGuide();
+        }
+
+        function onPoseResults(results) {
+            const canvas = document.getElementById('poseCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (results.poseLandmarks && results.poseLandmarks.length > 0) {
+                drawPose(results.poseLandmarks, ctx, canvas);
+                const currentExercise = appData.currentWorkout?.exercises[appData.currentExerciseIndex];
+                if (currentExercise) {
+                    poseState.exerciseType = currentExercise.id;
+                    const detector = exerciseDetectors[currentExercise.id] || exerciseDetectors.default;
+                    detector.detect(results.poseLandmarks);
+                }
+            }
+            updatePoseOverlay();
+        }
+
+        function drawPose(landmarks, ctx, canvas) {
+            const connections = [
+                [0, 1], [1, 2], [2, 3], [3, 7], [1, 4], [4, 5], [5, 6],
+                [8, 9], [9, 10], [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+                [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]
+            ];
+            ctx.strokeStyle = 'rgba(255, 107, 0, 0.8)';
+            ctx.lineWidth = 2;
+            connections.forEach(([start, end]) => {
+                const p1 = landmarks[start];
+                const p2 = landmarks[end];
+                ctx.beginPath();
+                ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+                ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+                ctx.stroke();
+            });
+            landmarks.forEach((landmark, i) => {
+                ctx.fillStyle = landmark.visibility > 0.5 ? 'rgba(0, 217, 255, 0.9)' : 'rgba(100, 100, 100, 0.3)';
+                ctx.beginPath();
+                ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            const xs = landmarks.map(l => l.x * canvas.width);
+            const ys = landmarks.map(l => l.y * canvas.height);
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(minX - 5, minY - 5, maxX - minX + 10, maxY - minY + 10);
+        }
+
+        function updateExerciseGuide() {
+            const currentExercise = appData.currentWorkout?.exercises[appData.currentExerciseIndex];
+            if (currentExercise) {
+                const detector = exerciseDetectors[currentExercise.id] || exerciseDetectors.default;
+                document.getElementById('guideName').textContent = EXERCISES[currentExercise.id].name.toUpperCase();
+                document.getElementById('guideSteps').textContent = detector.steps.join('\n');
+            }
+        }
+
+        function updatePoseOverlay() {
+            document.getElementById('repCount').textContent = poseState.repCount;
+            let feedback = '';
+            if (poseState.confidence < 0.4) {
+                feedback = '⚠️ MOVE INTO FRAME';
+            } else if (poseState.formQuality === 'good' || poseState.formQuality === 'initializing') {
+                feedback = '✓ EXCELLENT FORM';
+            } else {
+                feedback = '⚠️ ' + poseState.formQuality.toUpperCase();
+            }
+            document.getElementById('feedbackText').textContent = feedback;
+        }
+
+        function togglePoseDetection() {
+            isPoseDetecting = !isPoseDetecting;
+            const btn = document.getElementById('recordBtn');
+            if (isPoseDetecting) {
+                btn.textContent = '⏹ STOP DETECTION';
+                poseState.repCount = 0;
+                updateExerciseGuide();
+            } else {
+                btn.textContent = '▶ START DETECTION';
+                if (poseState.repCount > 0) {
+                    const currentIndex = appData.currentExerciseIndex;
+                    appData.currentWorkout.exercises[currentIndex].actualReps = poseState.repCount;
+                    renderWorkoutSession();
+                    closeCamera();
+                }
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
